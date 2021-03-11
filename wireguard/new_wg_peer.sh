@@ -78,22 +78,16 @@ echo "PublicKey = $(cat "${name}.pub")" >> /etc/wireguard/wg0.conf
 echo "PresharedKey = $(cat "${name}.psk")" >> /etc/wireguard/wg0.conf
 echo "AllowedIPs = ${address}/32, fd08:4711::${octet}/128" >> /etc/wireguard/wg0.conf
 
-## TODO - check for successful restart, remove what we've done so far?
-## TODO - find the way to hot-reload without having to restart the service
+## TODO - Stop? Notify? if reload returns error
+# Reload the config without having to restart the service and disrupt working connections
 echo "	Reloading updated Wireguard config..."
 wg syncconf wg0 <(wg-quick strip wg0)
-if [[ `systemctl is-active wg-quick@wg0` == "active" ]]; then
-	echo "	Successfully restarted"
-else
-	echo "	====ERROR===="
-	echo "	Wireguard did not reload, problem with config file!"
-	exit 1
-fi
 
 # Generate profile config file
 echo "	Generating profile config file"
 echo "[Interface]" > "${name}.conf"
 echo "Address = ${address}/32, fd08:4711::${octet}/128" >> "${name}.conf"
+## TODO - Check for Pi-hole IP, or other DNS?
 echo "DNS = ${gateway}" >> "${name}.conf"  # Your Pi-hole's IP
 echo "PrivateKey = $(cat "${name}.key")" >> "${name}.conf"
 
