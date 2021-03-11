@@ -7,24 +7,18 @@
 #                                            #
 # version 0.0.1                              #
 # Author: Kit Rairigh                        #
-# github: krair/cloud-tools                  #
+# github:                                    #
 ##############################################
-
-## TODO - add option to install from scratch
 
 ## TODO - add option to remove a profile
 
 ## TODO - add some error checking, if something fails, revert to old config
 
-# Check if user is running as root
-if [ "$EUID" -ne 0 ]; then
-	echo "Please run as root. Try with 'sudo'"
-	exit 1
-fi
+## TODO - Check if ran as root first(sudo)
 
 ## TODO - Check for existence of standard wg0.conf name and location
 
-## TODO - better way to check for external IP? probably won't work with docker. verify with user
+## TODO - better way to check? probably won't work with docker. verify with user
 # Find external IPv4 of server
 ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f8`
 port=`grep Listen /etc/wireguard/wg0.conf | cut -d " " -f3`
