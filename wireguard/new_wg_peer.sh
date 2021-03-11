@@ -28,6 +28,7 @@ fi
 # Find external IPv4 of server
 ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f8`
 port=`grep Listen /etc/wireguard/wg0.conf | cut -d " " -f3`
+
 # Use default wireguard config location to determine gateway and subnet
 gateway=`grep Address /etc/wireguard/wg0.conf | cut -d " " -f3 | cut -d "/" -f1`
 base=`echo "${gateway}" | cut -d "." -f1-3`
@@ -36,9 +37,15 @@ base=`echo "${gateway}" | cut -d "." -f1-3`
 ## TODO - Add IPv6 support
 # Find next available IPv4 address for new profile
 octet=$(( 1 + `grep AllowedIP /etc/wireguard/wg0.conf | tail -1 | cut -d "." -f4 | cut -d "/" -f1`))
+if [[ -z $octet ]]; then
+	octet=2
+elif [[ $octet > 254 ]]; then
+	echo "Too many clients for /24 subnet"
+	exit 1 
+fi
 address=${base}.${octet}
 echo "	Using gateway: ${gateway}"
-echo "	Assigning address ${address}"
+echo "	Assigning address: ${address}"
 
 # Ask to provide a name for the new profile
 echo "	Please give the peer connection a name:"
