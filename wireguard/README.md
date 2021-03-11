@@ -1,4 +1,4 @@
-***Wireguard***
+# ***Wireguard***
 
 A few scripts to help automate the setup and management of a Wireguard VPN with a Pi-Hole DNS.
 
