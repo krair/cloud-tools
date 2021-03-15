@@ -58,6 +58,11 @@ then
 	echo "	====Warning===="
 	echo "	No name given, reverting to default: wg-peer-${octet}"
 fi
+
+# Ask which type of client connection to configure
+read -e -p "	Would you like to setup as full VPN or adblock? [vpn/AD]" tfc
+[[ "$tfc" == [aA]* ]] && traffic="${base}.0/24, fd08::/64" || traffic="0.0.0.0/0, ::/0"
+
 echo "	Creating profile for ${name}"
 
 # Create subdirectory for new profile
@@ -91,9 +96,9 @@ echo "Address = ${address}/32, fd08:4711::${octet}/128" >> "${name}.conf"
 echo "DNS = ${gateway}" >> "${name}.conf"  # Your Pi-hole's IP
 echo "PrivateKey = $(cat "${name}.key")" >> "${name}.conf"
 
-## TODO - ask if only for DNS or for full VPN forwarding
+# Add peer info to config file
 echo "[Peer]" >> "${name}.conf"
-echo "AllowedIPs = ${base}.0/24, fd08::/64" >> "${name}.conf" # Only sets Pi-hole DNS use
+echo "AllowedIPs = ${traffic}" >> "${name}.conf" # Sets for DNS only or full VPN
 echo "Endpoint = ${ip}:${port}" >> "${name}.conf"
 echo "PersistentKeepalive = 25" >> "${name}.conf"
 echo "PublicKey = $(cat ../server.pub)" >> "${name}.conf"
