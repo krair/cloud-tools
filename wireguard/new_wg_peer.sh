@@ -39,7 +39,7 @@ base=`echo "${gateway}" | cut -d "." -f1-3`
 octet=$(( 1 + `grep AllowedIP /etc/wireguard/wg0.conf | tail -1 | cut -d "." -f4 | cut -d "/" -f1`))
 if [[ -z $octet ]]; then
 	octet=2
-elif [[ $octet > 254 ]]; then
+elif (( $octet > 254 )); then
 	echo "Too many clients for /24 subnet"
 	exit 1
 fi
