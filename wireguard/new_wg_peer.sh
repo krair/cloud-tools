@@ -41,7 +41,7 @@ if [[ -z $octet ]]; then
 	octet=2
 elif [[ $octet > 254 ]]; then
 	echo "Too many clients for /24 subnet"
-	exit 1 
+	exit 1
 fi
 address=${base}.${octet}
 echo "	Using gateway: ${gateway}"
@@ -73,7 +73,7 @@ wg genpsk > "${name}.psk"
 
 # Add new profile to default wireguard config and restart wireguard service
 echo "	Adding Peer to wg0.conf"
-echo "[Peer]" >> /etc/wireguard/wg0.conf
+echo "[Peer] # ${name}" >> /etc/wireguard/wg0.conf
 echo "PublicKey = $(cat "${name}.pub")" >> /etc/wireguard/wg0.conf
 echo "PresharedKey = $(cat "${name}.psk")" >> /etc/wireguard/wg0.conf
 echo "AllowedIPs = ${address}/32, fd08:4711::${octet}/128" >> /etc/wireguard/wg0.conf
