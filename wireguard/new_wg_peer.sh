@@ -24,9 +24,15 @@ fi
 
 ## TODO - Check for existence of standard wg0.conf name and location
 
-## TODO - better way to check for external IP? probably won't work with docker. verify with user
-# Find external IPv4 of server
-ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f8`
+## TODO - better way to check for external IP? probably won't work with docker. verify with user.
+
+## TODO - check for operating system, set diff options
+
+# Find external IPv4 of server (works on Fedora Server 32)
+#ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f8`
+
+# Find external IPv4 of server on Ubuntu
+ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f6 | cut -d "/" -f1`
 port=`grep Listen /etc/wireguard/wg0.conf | cut -d " " -f3`
 
 # Use default wireguard config location to determine gateway and subnet
@@ -78,7 +84,9 @@ wg genpsk > "${name}.psk"
 
 # Add new profile to default wireguard config and restart wireguard service
 echo "	Adding Peer to wg0.conf"
-echo "[Peer] # ${name}" >> /etc/wireguard/wg0.conf
+echo "" >> /etc/wireguard/wg0.conf
+echo "# ${name}" >> /etc/wireguard/wg0.conf #add name of connection to find for removal
+echo "[Peer]" >> /etc/wireguard/wg0.conf
 echo "PublicKey = $(cat "${name}.pub")" >> /etc/wireguard/wg0.conf
 echo "PresharedKey = $(cat "${name}.psk")" >> /etc/wireguard/wg0.conf
 echo "AllowedIPs = ${address}/32, fd08:4711::${octet}/128" >> /etc/wireguard/wg0.conf
