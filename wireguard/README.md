@@ -13,7 +13,7 @@ The goal is to make it as simple as possible so even my mother could use it...
 *Limitations:*
 - Not for setup of new server config
 - Cannot remove a peer
-- Only tested on a Fedora Server
+- Only tested on a Fedora Server & Ubuntu 20.04
 - Does not find available IP's if a peer was removed
 - Limited to /24 subnet
 - IPv4 only
@@ -24,10 +24,8 @@ The goal is to make it as simple as possible so even my mother could use it...
 - Backup old working config, revert if error(s)
 - Remove a peer by name or IP
 - Disable/enable peer by name or IP
-- Non-Pihole DNS
+- DNS "none" or "custom" options
 - Detect removed peer when adding a new peer, insert into empty (slot)
-- Ask if the profile is to be used for DNS only or for full VPN mode
-- Test on Ubuntu/Debian
 
 *Later*
 - Install and configure full Wireguard setup including firewalld/nftables config
