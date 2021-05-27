@@ -1,8 +1,31 @@
 # ***Wireguard***
 
-A few scripts to help automate the setup and management of a Wireguard VPN with a Pi-Hole DNS.
+A few scripts to help automate the setup and management of a Wireguard VPN.
 
-The goal is to make it as simple as possible so even my mother could use it...
+The goal is to eventually make it as simple as possible so even my mother could use it...
+
+## Win_wg_adapters_to_private.ps1
+
+A basic PowerShell script to change your Wireguard adapters from the 'Public' Network space to 'Private'. Must be run as Administrator.
+
+*What it does:*
+- Finds a list of installed Wireguard config files
+- Gets a list of adapters in the 'Public' space
+- Compares the lists, if a match, changes the adapter to the 'Private' space
+- Catches the error if no adapters are in the 'Public' space
+
+*Limitations:*
+- I have very little experience with Powershell, so this is just a quick script I made for personal use while testing to speed up the process when I would create a new peer or change something in Wireguard and it would revert to 'Public'
+- No output on successful change
+
+*Future:*
+- Automate the process so this script runs anytime a Wireguard adapter is modified
+- Add this to a script for Internet Connection Sharing when I want to use NAT on clients.
+- Add this to a script that fixes many of the Windows Networking "quirks" as listed in https://git.zx2c4.com/wireguard-windows/about/docs/netquirk.md
+
+## new_wg_peer.sh
+
+A simple shell script to quickly add Wireguard peers for Linux based Wireguard installs
 
 *What it does:*
 - Using default wg0.conf file and location, generates new profiles
