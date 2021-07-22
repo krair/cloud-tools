@@ -10,7 +10,7 @@ these files will be updated to be more flexible with more installations.
 This is heavily based upon the example given in the restic docs:
 https://restic.readthedocs.io/en/stable/080_examples.html#backing-up-your-system-without-running-restic-as-root
 
-*restic_backup.sh*
+## restic_backup.sh
 
 This is the main backup script. Nothing fancy here. Requires:
 - User named restic
@@ -18,7 +18,7 @@ This is the main backup script. Nothing fancy here. Requires:
 - A **restic.files** file - these are the files and directories to be backed up
 - A **restic.exclude** file - these are the files we want to exclude during our backup
 
-*db_backup.sh*
+## db_backup.sh
 
 Script to automate backing up of any docker database.
 
@@ -30,7 +30,7 @@ must be set manually in the **docker_databases** file.
 - For MariaDB or MySQL, use "mysql" as the Db-type
 - For PostgreSQL, use "pgsql" as the Db-type
 
-*Usage*
+## Usage
 
 Follow the link above. You should have a user named `restic` with a home directory
 located at `/home/restic`.
@@ -50,6 +50,7 @@ deleted after to not leave raw databases accessible to anyone.
 All of the files here should be in the `/home/restic/`.
 
 Create a `cron` job for the `restic` user to run the script daily like:
+
 `0 2 * * * /home/restic/db_backup.sh 2>&1 | /usr/bin/logger -t resticdbbkup`
 
 This will run a backup at 2AM daily using the db_backup.sh script. It will also
