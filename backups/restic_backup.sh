@@ -9,11 +9,15 @@
 # Set home directory used throughout the script
 home=/home/restic
 
+# Create logfiles
+touch $home/restic.err
+touch $home/restic.log
+
 # Get env variables for restic written into restic.env file
 source $home/restic.env
 
 # Backup using restic.files and restic.exclude, tagged, errors and output to log
-$home/bin/restic backup --files-from=$home/restic.files --exclude-file=$home/restic.exclude --tag automated 2>> ~/restic.err >> ~/restic.log
+$home/bin/restic backup --files-from=$home/restic.files --exclude-file=$home/restic.exclude --tag automated 2>> $home/restic.err >> $home/restic.log
 
 # Pruning snapshots to only keep last 7 daily, last 4 weekly, 12 monthly, 10 yearly
 #     - Will also repack using the --prune switch
