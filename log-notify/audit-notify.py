@@ -1,15 +1,45 @@
 #!/usr/bin/env python3
 
-# AUDISP plugin - taken and modified from https://security-plus-data-science.blogspot.com/2017/06/using-auparse-in-python.html
+''' Python based AUDITD plugin to read auditd events and pass them directly to a
+matrix room instead of using email or otherwise.
 
-# Python plugin to read auditd events and pass them directly to a matrix room
-#   instead of using email or otherwise
+Sources:
+https://security-plus-data-science.blogspot.com/2017/06/using-auparse-in-python.html
+https://github.com/karmab/audisp-simple/blob/master/audisp-simple.py
+'''
 
 import sys
 import auparse
 import audit
-from os import execv #, path
-#from tempfile import mkstemp
+import os
+import signal
+
+stop = 0
+hup = 0
+aup = None
+
+def term_handler(sig, msg):
+        global stop
+        stop = 1
+        sys.exit(0)
+
+def hup_handler(sig, msg):
+        global hup
+        hup = 1
+
+def reload_config():
+        global hup
+        hup = 0
+
+def none_to_null(s):
+    'used so output matches C version'
+    if s is None:
+        return '(null)'
+    else:
+        return s
+
+signal.signal(signal.SIGHUP, hup_handler)
+signal.signal(signal.SIGTERM, term_handler)
 
 # TODO - Group events so a single login is 1 message instead of 4
 # TODO - Filter event kinds to pass over anything except a login/auth request
@@ -91,41 +121,52 @@ class EventHolder:
         for k,v in self.__dict__.items():
             message += str(k) + " : " + str(v) + "\n"
         message += "====End===="
-        execv("/root/matrix-commander/matrix-commander.py",[' ','-m',' ',message])
-#    def sendToMatrix(self,tmpFile):
-#        if path.exists(tmpFile):
-#            execl("cat" + tmpFile,"/root/matrix-commander/matrix-commander.py")
+        os.execv("/root/matrix-commander/matrix-commander.py",[' ','-m',' ',message])
 
-# Audit parser initialization (reads from std input - denoted by the "0")
-aup = auparse.AuParser(auparse.AUSOURCE_DESCRIPTOR, 0);
-# Catch exception
-#if not aup:
-#    print("Error initializing AuParser")
-#    sys.exit(1)
+def beginParse(aup):
+    aup.reset()
+    # Grab each event and parse it out
+    while aup.parse_next_event():
+        # Initialize event class with basic data
+        event = EventHolder(aup.get_type_name(),aup.get_timestamp())
 
-# Grab each event and parse it out
-while aup.parse_next_event():
-    # Initialize event class with basic data
-    event = EventHolder(aup.get_type_name(),aup.get_timestamp())
+        # If unable to normalize event, write basic info and continue to next event
+        if aup.aup_normalize(auparse.NORM_OPT_NO_ATTRS):
+            event.error = "Error normalizing"
+            event.writeOut()
+            del event
+            continue
 
-    # If unable to normalize event, write basic info and continue to next event
-    if aup.aup_normalize(auparse.NORM_OPT_NO_ATTRS):
-        event.error = "Error normalizing"
+        # Catch event kind exception errors
+        try:
+            event.kind = aup.aup_normalize_get_event_kind()
+        except RuntimeError:
+            event.kind = "n/a"
+
+        # TODO - implement whitelist/blacklist filters here?
+        if event.kind:
+            event.getDetails(aup)
+
         event.writeOut()
         del event
-        continue
 
-    # Catch event kind exception errors
-    try:
-        event.kind = aup.aup_normalize_get_event_kind()
-    except RuntimeError:
-        event.kind = "n/a"
+    aup = None
 
-    # TODO - implement whitelist/blacklist filters here?
-    if event.kind:
-        event.getDetails(aup)
+def main():
+    global stop
+    global hup
 
-    event.writeOut()
-    del event
+    while stop == 0:
+        try:
+            buf=sys.stdin
+            if hup == 1 :
+                reload_config()
+                continue
+            for line in buf:
+                aup = auparse.AuParser(auparse.AUSOURCE_BUFFER, line)
+                beginParse(aup)
+        except IOError, e:
+            continue
 
-aup = None
+if  __name__ =='__main__':
+        main()
