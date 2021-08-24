@@ -125,6 +125,7 @@ while aup.parse_next_event():
         event.getDetails(aup)
 
     event.writeOut()
+    event.__del__
 
 
 aup = None
