@@ -129,4 +129,3 @@ while aup.parse_next_event():
     del event
 
 aup = None
-sys.exit(0)
