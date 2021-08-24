@@ -112,6 +112,7 @@ while aup.parse_next_event():
     if aup.aup_normalize(auparse.NORM_OPT_NO_ATTRS):
         event.error = "Error normalizing"
         event.writeOut()
+        del event
         continue
 
     # Catch event kind exception errors
@@ -125,8 +126,7 @@ while aup.parse_next_event():
         event.getDetails(aup)
 
     event.writeOut()
-    event.__del__
-
+    del event
 
 aup = None
 sys.exit(0)
