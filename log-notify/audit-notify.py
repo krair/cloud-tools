@@ -99,9 +99,9 @@ class EventHolder:
 # Audit parser initialization (reads from std input - denoted by the "0")
 aup = auparse.AuParser(auparse.AUSOURCE_DESCRIPTOR, 0);
 # Catch exception
-if not aup:
-    print("Error initializing AuParser")
-    sys.exit(1)
+#if not aup:
+#    print("Error initializing AuParser")
+#    sys.exit(1)
 
 # Grab each event and parse it out
 while aup.parse_next_event():
