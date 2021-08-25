@@ -31,13 +31,6 @@ def reload_config():
         global hup
         hup = 0
 
-def none_to_null(s):
-    'used so output matches C version'
-    if s is None:
-        return '(null)'
-    else:
-        return s
-
 signal.signal(signal.SIGHUP, hup_handler)
 signal.signal(signal.SIGTERM, term_handler)
 
@@ -165,7 +158,7 @@ def main():
             for line in buf:
                 aup = auparse.AuParser(auparse.AUSOURCE_BUFFER, line)
                 beginParse(aup)
-        except IOError, e:
+        except IOError:
             continue
 
 if  __name__ =='__main__':
