@@ -14,8 +14,10 @@ import audit
 import os
 import signal
 import logging
+import subprocess
+import shlex
 
-logging.basicConfig(level=logging.DEBUG,filename='aunot.log',format='%(asctime)s : %(levelname)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S')
+logging.basicConfig(level=logging.INFO,filename='/tmp/aunot.log',format='%(asctime)s : %(levelname)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S')
 logging.debug("Program begin")
 
 stop = 0
@@ -55,8 +57,6 @@ class EventHolder:
         # Initialize with basic information
         self.type = type
         self.time = time
-        ### To implement when grouping events
-        # self.eventExists = False
 
     def getDetails(self,aup):
         """ This section was almost entirely taken from the above listed website.
@@ -65,7 +65,6 @@ class EventHolder:
         stored.
         """
         # Get session
-        # TODO - What does session represent?
         if aup.aup_normalize_session():
             self.session = aup.interpret_field()
             logging.debug(f"Session: {self.session}")
@@ -126,33 +125,44 @@ class EventHolder:
         The long string is then sent directly to the matrix-commander program.
         Note: The matrix-commander program must already be setup prior to use.
         """
+        # Create message, single quotes used to ensure no problems sending
+        # TODO - Review if better to use different method to prevent injection
         logging.info("Begin event writeOut")
-        message = "New Event\n------------\n"
+        message = "'"
         for k,v in self.__dict__.items():
             message += str(k) + " : " + str(v) + "\n"
-        message += "====End===="
+        message += "====End===='"
         logging.debug(f"Message to send: {message}")
-        os.execv("/root/matrix-commander/matrix-commander.py",[' ','-m',' ',message])
-        logging.info("Message send complete")
+
+        # Send via matrix-commander - usually returns exit code 1 even when successful
+        try:
+            # Location of program, credentials, message store
+            cmd = "/usr/sbin/matrix-commander.py -c /usr/local/share/matrix-commander/credentials.json -s /usr/local/share/matrix-commander/store/"
+            args = shlex.split(cmd)
+            logging.debug(f"Args to send: {args}")
+            # Capture as a variable in case I want to return output
+            sent = subprocess.run(args, input=message, timeout=10, check=True, capture_output=True, text=True)
+            logging.info("Message send completed successfully")
+        except subprocess.CalledProcessError:
+            # For some reason messages successfully send and still exit code 1
+            logging.warning(f"Process finished with non-zero code")
+        except:
+            logging.exception("Message failed")
 
 def beginParse(aup):
     logging.debug("Begin parser")
     aup.reset()
-    event_count = 0
     logging.debug("Audit event reset")
     # Grab each event and parse it out
     while aup.parse_next_event():
-        event_count += 1
-        logging.debug(f"Event number: {event_count}")
         # Initialize event class with basic data
         event = EventHolder(aup.get_type_name(),aup.get_timestamp())
         logging.info(f"Event created with type: {event.type} and time: {event.time}")
         # If unable to normalize event, write basic info and continue to next event
         if aup.aup_normalize(auparse.NORM_OPT_NO_ATTRS):
-            logging.debug(f"Unable to normalize event: {event_count}")
+            logging.debug("Unable to normalize event")
             event.error = "Error normalizing"
             event.writeOut()
-            logging.info(f"Non-normalized event info sent: {event_count}")
             continue
 
         # Catch event kind exception errors
@@ -168,9 +178,10 @@ def beginParse(aup):
             event.getDetails(aup)
 
         event.writeOut()
-        logging.info("Event Complete\n-----------\n")
+        logging.info("Event Complete")
     aup = None
-    logging.info(f"Log finished. Aup should be 'None': {str(aup)}")
+    logging.debug(f"AuParse object cleared: {str(aup)}")
+    logging.info("Log entry finished. Event cleared.\n----------\n")
 
 def main():
     global stop
@@ -179,7 +190,9 @@ def main():
     while stop == 0:
         try:
             buf=sys.stdin
-            logging.debug("Listening on stdin")
+            # Logging event only useful if not working AT ALL. Otherwise causes
+            #   huge logfile with infinite loop.
+#            logging.debug("Listening on stdin")
             if hup == 1 :
                 reload_config()
                 continue
