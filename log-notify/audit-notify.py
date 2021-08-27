@@ -23,6 +23,7 @@ logging.debug("Program begin")
 stop = 0
 hup = 0
 aup = None
+blacklist = set()
 
 def term_handler(sig, msg):
         global stop
@@ -43,9 +44,12 @@ def reload_config():
 signal.signal(signal.SIGHUP, hup_handler)
 signal.signal(signal.SIGTERM, term_handler)
 logging.debug("Signal handlers initialized")
+
 # TODO - Group events so a single login is 1 message instead of 4
 # TODO - Filter event kinds to pass over anything except a login/auth request
     # TODO - add a blacklist/whitelist for which events to send/ignore
+    # TODO - allow for AND statements in blacklist/whitelist
+    # TODO - add blacklist filter earlier in the process?
 # TODO - If there's an error, I don't want 10,000 messages in my inbox (maybe not a problem with the sys.exit(1) call?)
 # TODO - config file? For file location of matrix-commander
     # TODO - tear down matrix-commander and incorporate necessary pieces into here
@@ -127,9 +131,14 @@ class EventHolder:
         """
         # Create message, single quotes used to ensure no problems sending
         # TODO - Review if better to use different method to prevent injection
+        global blacklist
         logging.info("Begin event writeOut")
         message = "'"
         for k,v in self.__dict__.items():
+            # Add blacklist filter
+            if (str(k),str(v)) in blacklist:
+                logging.debug(f"Event found in blacklist, skipping: {k}:{v}")
+                return
             message += str(k) + " : " + str(v) + "\n"
         message += "====End===='"
         logging.debug(f"Message to send: {message}")
@@ -183,9 +192,29 @@ def beginParse(aup):
     logging.debug(f"AuParse object cleared: {str(aup)}")
     logging.info("Log entry finished. Event cleared.\n----------\n")
 
+def loadBlacklist():
+    '''Attempt to load blacklist from file, if unsuccessful, do not use. Events to
+    blacklist must be in the form of 'field_name field_value', one per line. Examples
+    shown in the blacklist.example file.
+    '''
+    global blacklist
+    try:
+        # Load list from file
+        with open("/usr/local/share/matrix-commander/blacklist") as bl:
+            for line in bl:
+                i = line.split()
+                blacklist.add((i[0],i[1]))
+        return True
+    except:
+        return False
+    if not blacklist:
+        return False
+
 def main():
     global stop
     global hup
+    if not loadBlacklist():
+        logging.error("Failed to load blacklist")
 
     while stop == 0:
         try:
@@ -196,6 +225,7 @@ def main():
             if hup == 1 :
                 reload_config()
                 continue
+            # Start loading lines into our parser
             for line in buf:
                 logging.debug(f"Reading line from buffer:\n{line}\n")
                 aup = auparse.AuParser(auparse.AUSOURCE_BUFFER, line)

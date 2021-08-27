@@ -1,0 +1,8 @@
+# Blacklist message types for audit-notify.py
+type SERVICE_START
+type BPF
+type CONFIG_CHANGE
+type DAEMON_START
+type DAEMON_END
+how /usr/sbin/crond
+action changed-login-id-to
