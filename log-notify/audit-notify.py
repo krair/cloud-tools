@@ -6,25 +6,38 @@ matrix room instead of using email or otherwise.
 Sources:
 https://security-plus-data-science.blogspot.com/2017/06/using-auparse-in-python.html
 https://github.com/karmab/audisp-simple/blob/master/audisp-simple.py
+
+Written by: Kit Rairigh - https://rair.dev - https://github.com/krair
 '''
+# TODO - Group events so a single login is 1 message instead of 4
+    # same PID? Session? within 10 second window?
+# TODO - add a whitelist option for which events to send: if in WL and NOT in BL
+    # TODO - allow for AND/OR statements in blacklist/whitelist
+    # TODO - add WL/BL filter earlier in the process?
+    # TODO - add timestamp filter in WL/BL
+# TODO - config file? For file location of matrix-commander
+    # TODO - tear down matrix-commander and incorporate only necessary pieces
 
 import sys
 import auparse
-import audit
-import os
+#import audit
+#import os
 import signal
 import logging
 import subprocess
 import shlex
 
+# Initialize Logging
 logging.basicConfig(level=logging.INFO,filename='/tmp/aunot.log',format='%(asctime)s : %(levelname)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S')
 logging.debug("Program begin")
 
+# Global vars
 stop = 0
 hup = 0
 aup = None
 blacklist = set()
 
+# SIGHUP and SIGTERM handlers
 def term_handler(sig, msg):
         global stop
         stop = 1
@@ -44,15 +57,6 @@ def reload_config():
 signal.signal(signal.SIGHUP, hup_handler)
 signal.signal(signal.SIGTERM, term_handler)
 logging.debug("Signal handlers initialized")
-
-# TODO - Group events so a single login is 1 message instead of 4
-# TODO - Filter event kinds to pass over anything except a login/auth request
-    # TODO - add a blacklist/whitelist for which events to send/ignore
-    # TODO - allow for AND statements in blacklist/whitelist
-    # TODO - add blacklist filter earlier in the process?
-# TODO - If there's an error, I don't want 10,000 messages in my inbox (maybe not a problem with the sys.exit(1) call?)
-# TODO - config file? For file location of matrix-commander
-    # TODO - tear down matrix-commander and incorporate necessary pieces into here
 
 class EventHolder:
     """ Class to hold event information and send when complete
@@ -162,7 +166,7 @@ def beginParse(aup):
     logging.debug("Begin parser")
     aup.reset()
     logging.debug("Audit event reset")
-    # Grab each event and parse it out
+    # Grab each event and parse it out (when using as auditd plugin, generally only 1)
     while aup.parse_next_event():
         # Initialize event class with basic data
         event = EventHolder(aup.get_type_name(),aup.get_timestamp())
@@ -181,13 +185,16 @@ def beginParse(aup):
             event.kind = "n/a"
             logging.exception("Unable to normalize event kind")
 
-        # TODO - implement whitelist/blacklist filters here?
+        # Fill in remaining details, might be able to consolidate into getDetails method
         if event.kind:
             logging.debug(f"Event kind found as: {event.kind}")
             event.getDetails(aup)
 
+        # Send completed details to matrix-commander
         event.writeOut()
         logging.info("Event Complete")
+
+    # Clear aup event to minimize memory footprint
     aup = None
     logging.debug(f"AuParse object cleared: {str(aup)}")
     logging.info("Log entry finished. Event cleared.\n----------\n")
@@ -196,14 +203,19 @@ def loadBlacklist():
     '''Attempt to load blacklist from file, if unsuccessful, do not use. Events to
     blacklist must be in the form of 'field_name field_value', one per line. Examples
     shown in the blacklist.example file.
+
+    A bit verbose with the True/False return, but included to eventually add Whitelist
     '''
     global blacklist
     try:
         # Load list from file
         with open("/usr/local/share/matrix-commander/blacklist") as bl:
             for line in bl:
-                i = line.split()
-                blacklist.add((i[0],i[1]))
+                # Ignore commented and blank lines
+                if not line.startswith(("#"," "))
+                    i = line.split(" ",1)
+                    blacklist.add((i[0],i[1]))
+        logging.debug(f"Blacklist loaded: {blacklist}")
         return True
     except:
         return False
