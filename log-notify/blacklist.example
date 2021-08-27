@@ -1,5 +1,19 @@
-# Blacklist message types for audit-notify.py
+# Blacklist message types for audit-notify.py to skip
+#
+### Possible values for the first column:
+# 'type' 'time' 'error' 'kind' 'session' 'primary_subject'
+# 'secondary_subject' 'result' 'action' 'primary_object'
+# 'secondary_object' 'object_kind' 'how'
+#
+### Possible values for the second column:
+# The list is too long, but you can look at your audit logs
+# and the auditd manual if you are getting too many notifications
+
+## TODO - Add 'AND' + 'OR' statements for finer grain
+## TODO - Add timestamp filtering
+
 type SERVICE_START
+type SERVICE_STOP
 type BPF
 type CONFIG_CHANGE
 type DAEMON_START
