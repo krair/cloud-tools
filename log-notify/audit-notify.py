@@ -158,7 +158,7 @@ class EventHolder:
             logging.info("Message send completed successfully")
         except subprocess.CalledProcessError:
             # For some reason messages successfully send and still exit code 1
-            logging.warning(f"Process finished with non-zero code")
+            logging.info(f"Process finished with non-zero code")
         except:
             logging.exception("Message failed")
 
