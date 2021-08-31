@@ -17,6 +17,8 @@ Written by: Kit Rairigh - https://rair.dev - https://github.com/krair
     # TODO - add timestamp filter in WL/BL
 # TODO - config file? For file location of matrix-commander
     # TODO - tear down matrix-commander and incorporate only necessary pieces
+# TODO - use tempfile package to securely create tmp logfile,
+#   or umask and move to /var/log/audit/
 
 import sys
 import auparse
@@ -28,7 +30,7 @@ import subprocess
 import shlex
 
 # Initialize Logging
-logging.basicConfig(level=logging.INFO,filename='/tmp/aunot.log',format='%(asctime)s : %(levelname)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S')
+logging.basicConfig(level=logging.WARN,filename='/tmp/aunot.log',format='%(asctime)s : %(levelname)s - %(message)s',datefmt='%d-%b-%y %H:%M:%S')
 logging.debug("Program begin")
 
 # Global vars
@@ -141,7 +143,7 @@ class EventHolder:
         for k,v in self.__dict__.items():
             # Add blacklist filter
             if (str(k),str(v)) in blacklist:
-                logging.debug(f"Event found in blacklist, skipping: {k}:{v}")
+                logging.info(f"Event found in blacklist, skipping: {k}:{v}")
                 return
             message += str(k) + " : " + str(v) + "\n"
         message += "====End===='"
@@ -212,9 +214,9 @@ def loadBlacklist():
         with open("/usr/local/share/matrix-commander/blacklist") as bl:
             for line in bl:
                 # Ignore commented and blank lines
-                if not line.startswith(("#"," "))
+                if not line.startswith(("#"," ","\n")):
                     i = line.split(" ",1)
-                    blacklist.add((i[0],i[1]))
+                    blacklist.add((i[0],i[1].rstrip()))
         logging.debug(f"Blacklist loaded: {blacklist}")
         return True
     except:
