@@ -23,7 +23,7 @@ TODO - Automate the process and improve the locations, but for now it's rough an
   - Send a test message to ensure the room is setup correctly.
 
 3. As root/sudo on the notification server:
-  - Copy `matrix-commander.py` and `audit-notify.py` into `/usr/sbin/` with correct permissions. *If using python 3.9, you will have to copy auparse.so file as well if python cannot find it*
+  - Copy `matrix-commander.py` and `audit-notify.py` into `/usr/sbin/` with correct permissions. *If using python 3.9, I had trouble with the auparse python package. You might need to find it and add it to the python PATH or copy it to a location it can be found*
   - Copy `matrix-notifications.conf` into `/etc/audit/plugins.d/` directory.
   - Create the directory: `/usr/local/share/matrix-commander/store/` - you can copy the created `/store/` directory if desired but it isn't required.
   - Copy your `credentials.json` into `/usr/local/share/matrix-commander/`
@@ -32,7 +32,7 @@ TODO - Automate the process and improve the locations, but for now it's rough an
 4. Test to make sure everything is setup properly by running the following:
   - To get a set of test events, make sure you get some output from:
   ```
-  sudo ausearch --start recent --raw | grep USER`
+  sudo ausearch --start recent --raw | grep USER
   ```
   *if no output, we can expand the search to today:*
   ```
