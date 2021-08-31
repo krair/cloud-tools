@@ -15,3 +15,6 @@ Note: Most are only tested on my own cloud servers. Despite that, I tried to add
 
 ## Docker
 - Scripts to help speed up some repetitive tasks with docker
+
+## Log-Notify
+- Simple python program to parse and send system notifications (like logins and security alerts) from the `audit` daemon to a matrix homeserver.
