@@ -2,7 +2,7 @@
 
 ##########################################################################
 # Simple script to backup docker based docker_databases
-#    Currently supports MYSQL (and MariaDB) and PostgreSQL
+#    Currently supports MYSQL (and MariaDB), PostgreSQL, MongoDB (basic).
 #
 #    Special treatment for Nextcloud - maintenance mode
 #
@@ -18,10 +18,19 @@
 
 ## TODO - Add support for more password context (secret, env, other)
 ## TODO - Nextcloud container name - add in configfile?
+# in config file:
+#   1) add container name to end of config file, have to be careful of accidental for other containers
+#   2) run a quick check on each container to see if it responds to php occ command?
 ## TODO - Proper logging instead of echo statements
+## TODO - Break into multiple scripts ( create, backup, delete )
+## TODO - More complex mongodb setups ( select database(s), password protection)
+
+# Set container environment
+cenv=/usr/bin/podman
 
 # Set home directory - see restic user setup per the restic link above
 home=/home/restic
+
 # Select config file
 configfile=$home/docker_databases
 [ $# -gt 0 ] && [ -r "$1" ] && configfile="$1"
@@ -35,36 +44,50 @@ dbbkdir=/tmp/dbbackup
 
 # Strip white space and comments from config file before passing it
 sed -e 's/[[:space:]]*#.*// ; /^[[:space:]]*$/d' "$configfile" |
+
 # grab vars from config file
 while read -r dbtype container user database; do
 # Create filename (container_name-database_name-YearMonthDay-HourMinute)
 dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
   # Nextcloud Maintenance mode (more flexibility needed here for container name)
   if [[ $database == "nextcloud" ]]; then
-    /usr/bin/docker exec -u www-data nextcloud php occ maintenance:mode --on
+    ${cenv} exec -u www-data nextcloud php occ maintenance:mode --on
   fi
   ### Backup depending on database type
+
   # MySQL & MariaDB (using docker secrets)
   if [[ $dbtype == "mysql" ]]; then
     ext=.sql.gz
-    /usr/bin/docker exec ${container} bash -c 'mysqldump --single-transaction -u '"${user}"' -p`cat "$MYSQL_PASSWORD_FILE"` '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
+    ${cenv} exec ${container} bash -c 'mysqldump --single-transaction -u '"${user}"' -p`cat "$MYSQL_PASSWORD_FILE"` '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
+
   # PostgreSQL
   elif [[ $dbtype == "pgsql" ]]; then
     ext=.bak.gz
-    /usr/bin/docker exec ${container} bash -c 'pg_dump '"$database"' -U '"$user"'' | gzip > $dbbkdir/$dbbkfile$ext
+    ${cenv} exec ${container} bash -c 'pg_dump '"$database"' -U '"$user"'' | gzip > $dbbkdir/$dbbkfile$ext
+
+  # MongoDB
+  elif [[ $dbtype == "mongo" ]]; then
+    ext=.mdb.gz
+    ${cenv} exec ${container} bash -c 'umask 077; mongodump; tar -czf '"$dbbkfile$ext"' /dump'
+    ${cenv} cp ${container}:/${dbbkfile}${ext} ${dbbkdir}
+    ${cenv} exec ${container} bash -c 'rm '"$dbbkfile$ext"''
+
+
   # catch errors and wrong types
   else
-    echo "Sorry, I don't know how to backup $dbtype"
+    echo "Sorry, I don't know how to backup $dbtype. Did you mean 'mysql', 'pgsql', or 'mongo'?"
   fi
+
   # Check backup success (file exists and is non-zero)
   if [[ -s $dbbkdir/$dbbkfile$ext ]]; then
     echo "*******$container-$database backup is good***********"
   else
     echo "========ERROR WITH $container-$database========"
   fi
+
   # Nextcloud maintenance mode off
   if [[ $database == "nextcloud" ]]; then
-    /usr/bin/docker exec -u www-data nextcloud php occ maintenance:mode --off
+    ${cenv} exec -u www-data nextcloud php occ maintenance:mode --off
   fi
 done
 

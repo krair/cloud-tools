@@ -25,10 +25,11 @@ Script to automate backing up of any docker database.
 For now the script is set to only use docker secrets stored in *_FILE environment
 variables. I plan to add more flexibility to this soon.
 
-For now the script only supports MariaDB (MySQL) and PostgreSQL databases. They
+For now the script only supports MariaDB (MySQL), PostgreSQL and mongodb databases. They
 must be set manually in the **docker_databases** file.
 - For MariaDB or MySQL, use "mysql" as the Db-type
 - For PostgreSQL, use "pgsql" as the Db-type
+- For MongoDB, use "mongo"as the Db-type
 
 ## Usage
 
