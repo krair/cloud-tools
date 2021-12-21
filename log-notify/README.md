@@ -92,3 +92,6 @@ As I've so far only tested this on a Fedora 34 and Centos 8 Stream server, I hav
 [root]# service auditd stop
 [root]# service auditd start
 ```
+
+## Troubleshooting
+After having the module installed for roughly 6 months, the `matrix-commander` database in the `/usr/local/share/matrix-commander/store/` directory reached about 13Mb in size and stopped sending messages altogether. Before that, it had been slowing down significantly. By deleting the database and journal files the functionality returned. I will look into the issue which might be as simple as clearing the database out at regularly scheduled times.
