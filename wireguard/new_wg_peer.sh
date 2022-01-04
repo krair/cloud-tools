@@ -30,7 +30,7 @@ fi
 # Find external IPv4 of server (works on Fedora Server 32)
 #ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f8`
 
-# Find external IPv4 of server on Ubuntu
+# Find external IPv4 of server on Ubuntu && Centos stream 8
 ip=`ip a | grep -e "inet.*eth0" | cut -d " " -f6 | cut -d "/" -f1`
 port=`grep Listen /etc/wireguard/wg0.conf | cut -d " " -f3`
 
@@ -64,6 +64,7 @@ then
 	echo "	No name given, reverting to default: wg-peer-${octet}"
 fi
 
+## TODO - Ask user if they want custom AllowedIPs or a default set (case)
 # Ask which type of client connection to configure
 read -e -p "	Would you like to setup as full VPN or adblock? [vpn/AD]" tfc
 [[ "$tfc" == [aA]* ]] && traffic="${base}.0/24, fd08::/64" || traffic="0.0.0.0/0, ::/0"
@@ -89,6 +90,7 @@ echo "# ${name}" >> /etc/wireguard/wg0.conf #add name of connection to find for 
 echo "[Peer]" >> /etc/wireguard/wg0.conf
 echo "PublicKey = $(cat "${name}.pub")" >> /etc/wireguard/wg0.conf
 echo "PresharedKey = $(cat "${name}.psk")" >> /etc/wireguard/wg0.conf
+## TODO - semi randomized ipv6?
 echo "AllowedIPs = ${address}/32, fd08:4711::${octet}/128" >> /etc/wireguard/wg0.conf
 
 ## TODO - Stop? Notify? if reload returns error
@@ -99,24 +101,28 @@ wg syncconf wg0 <(wg-quick strip wg0)
 # Generate profile config file
 echo "	Generating profile config file"
 echo "[Interface]" > "${name}.conf"
+## TODO - semi randomized ipv6?
 echo "Address = ${address}/32, fd08:4711::${octet}/128" >> "${name}.conf"
-## TODO - Check for Pi-hole IP, or other DNS?
-echo "DNS = ${gateway}" >> "${name}.conf"  # Your Pi-hole's IP
+## TODO - Check for Pi-hole IP, or other DNS? None?
+echo "DNS = ${gateway}" >> "${name}.conf"
 echo "PrivateKey = $(cat "${name}.key")" >> "${name}.conf"
 
 # Add peer info to config file
+echo "" >> "${name}.conf"
 echo "[Peer]" >> "${name}.conf"
 echo "AllowedIPs = ${traffic}" >> "${name}.conf" # Sets for DNS only or full VPN
 echo "Endpoint = ${ip}:${port}" >> "${name}.conf"
-echo "PersistentKeepalive = 25" >> "${name}.conf"
+# echo "PersistentKeepalive = 25" >> "${name}.conf"
 echo "PublicKey = $(cat ../server.pub)" >> "${name}.conf"
 echo "PresharedKey = $(cat "${name}.psk")" >> "${name}.conf"
 
 echo "	Complete, peer config fie can be found under:"
 echo "	/etc/wireguard/${name}/${name}.conf"
 
+## TODO - save qr code into folder as well
 # Ask if completed config should be encoded into a scanable QR code output to stdout
 read -e -p "	Would you like the output as a QR code (for mobile clients)? [y/N]" choice
-[[ "$choice" == [Yy]* ]] && qrencode -t ansiutf8 -r "${name}.conf" || echo "	that was a no"
+[[ "$choice" == [Yy]* ]] && qrencode -t ansiutf8 < "${name}.conf" || echo "	that was a no"
 
+## TODO - ask if they want to do another?
 echo "	Finished!"
