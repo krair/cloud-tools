@@ -10,9 +10,7 @@
 # github: krair/cloud-tools                  #
 ##############################################
 
-## TODO - add option to install from scratch
-
-## TODO - add option to remove a profile
+## TODO - add option to install from scratch (or refer to existing?)
 
 ## TODO - add some error checking, if something fails, revert to old config
 
@@ -23,6 +21,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 ## TODO - Check for existence of standard wg0.conf name and location
+## - Use wg show to see active interface(s), if multiple, ask user which
 
 ## TODO - better way to check for external IP? probably won't work with docker. verify with user.
 
@@ -73,9 +72,10 @@ echo "	Creating profile for ${name}"
 
 # Create subdirectory for new profile
 echo "	Creating sub-directory /etc/wireguard/${name}"
+umask 077
 mkdir /etc/wireguard/${name}
 cd /etc/wireguard/${name}
-umask 077
+
 
 # Generate profile key and pre-shared key
 echo "	Generating wireguard keys..."
