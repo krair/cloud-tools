@@ -17,4 +17,6 @@ Note: Most are only tested on my own cloud servers. Despite that, I tried to add
 - Scripts to help speed up some repetitive tasks with docker
 
 ## Log-Notify
+**NOTE:** Permanently moved to its own repo: https://github.com/krair/auditd-matrix-notify
+
 - Simple python program to parse and send system notifications (like logins and security alerts) from the `audit` daemon to a matrix homeserver.
