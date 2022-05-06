@@ -14,9 +14,8 @@ touch $home/restic.err
 touch $home/restic.log
 
 # Mark logfiles with date
-date=`date '+%b %d %Y - %H:%M %Z'`
-echo -e "==== $date ====\n" >> $home/restic.err
-echo -e "==== $date ====\n" >> $home/restic.log
+echo -e "\n==== `date` ====\n" >> $home/restic.err
+echo -e "\n==== `date` ====\n" >> $home/restic.log
 
 # Get env variables for restic written into restic.env file
 source $home/restic.env
