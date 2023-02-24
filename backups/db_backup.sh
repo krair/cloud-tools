@@ -79,7 +79,7 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
   fi
 
   # Check backup success (file exists and is non-zero)
-  if [[ -s $dbbkdir/$dbbkfile$ext ]]; then
+if [ $(stat -c %s $dbbkdir/$dbbkfile$ext) -gt 1000 ]; then
     echo "*******$container-$database backup is good***********"
   else
     echo "========ERROR WITH $container-$database========"
@@ -97,7 +97,7 @@ echo "============backup complete============"
 
 # Delete database dump for security
 rm -r $dbbkdir
-if [ $(stat -c %s $dbbkdir/$dbbkfile$ext) -gt 1000 ]; then
+if [[ -d $dbbkdir ]]; then
   echo "========TEMP BACKUPS NOT DELETED!======="
 else
   echo "*********$dbbkdir successfully deleted***********"
