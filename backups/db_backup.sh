@@ -79,7 +79,7 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
   fi
 
   # Check backup success (file exists and is non-zero)
-if [ $(stat -c %s $dbbkdir/$dbbkfile$ext) -gt 1000 ]; then
+  if [ $(stat -c %s $dbbkdir/$dbbkfile$ext) -gt 1000 ]; then
     echo "*******$container-$database backup is good***********"
   else
     echo "========ERROR WITH $container-$database========"
