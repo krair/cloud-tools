@@ -58,7 +58,7 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
   # MySQL & MariaDB (using docker secrets)
   if [[ $dbtype == "mysql" ]]; then
     ext=.sql.gz
-    ${cenv} exec ${container} bash -c 'mysqldump --single-transaction -u '"${user}"' -p`cat "$MYSQL_PASSWORD_FILE"` '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
+    ${cenv} exec ${container} bash -c 'mysqldump --single-transaction -u '"${user}"' -p`cat "$MARIADB_PASSWORD_FILE"` '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
 
   # PostgreSQL
   elif [[ $dbtype == "pgsql" ]]; then
@@ -97,7 +97,7 @@ echo "============backup complete============"
 
 # Delete database dump for security
 rm -r $dbbkdir
-if [[ -d $dbbkdir ]]; then
+if [ $(stat -c %s $dbbkdir/$dbbkfile$ext) -gt 1000 ]; then
   echo "========TEMP BACKUPS NOT DELETED!======="
 else
   echo "*********$dbbkdir successfully deleted***********"
