@@ -6,6 +6,8 @@
 # Written by: Kit Rairigh - https://github.com/krair - https://rair.dev
 ##########################################################################
 
+set -e
+
 # Set home directory used throughout the script
 home=/home/restic
 
@@ -19,6 +21,9 @@ echo -e "\n==== `date` ====\n" >> $home/restic.log
 
 # Get env variables for restic written into restic.env file
 source $home/restic.env
+
+# Ensure our repo is initialized and reachable - if unreachable, the script will give a non-zero exit code which we can use for notifications, etc.
+$home/bin/restic cat config
 
 # Backup using restic.files and restic.exclude, tagged, errors and output to log
 $home/bin/restic backup --files-from=$home/restic.files --exclude-file=$home/restic.exclude --tag automated 2>> $home/restic.err >> $home/restic.log
