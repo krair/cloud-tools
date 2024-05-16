@@ -4,19 +4,24 @@
 # Written by: Kit Rairigh - https://github.com/krair - https://rair.dev
 ##########################################################################
 
-## TODO - Create small script to pull this info from compose files
+## TODO - Create small script to pull this info from compose files/podman quadlets?
 ## TODO - Add password context (secret, env, other?)
 #
 # Everything is separated by single spaces as shown below
 #
-# For now the script only supports MariaDB (MySQL), PostgreSQL and MongoDB
-#   For MariaDB or MySQL, use "mysql" as the Db-type
+# For now the script only supports MariaDB, PostgreSQL and MongoDB
+#   For MariaDB, use "mysql" as the Db-type
 #   For PostgreSQL, use "pgsql" as the Db-type
 #   For MongoDB, use "mongo" as the Db-type
 #
+# For the password section: For now only MariaDB requires a password for a dbdump (MySQL UNTESTED!)
+#   If you're using an env var, set password to "env"
+#   If you're using a secret file, set password to "file"
+#   (Not recommended!) If you've manually created the password, put it here in single quotes
+#
 # Follow the format shown below:
-# Db-type container_name username database_name
+# Db-type container_name username database_name password
 
-# mysql nextcloud-db nextcloud nextcloud
-# mysql photoprism-db photoprism photoprism
+# mysql nextcloud-db nextcloud nextcloud env
+# mysql photoprism-db photoprism photoprism 'p@s$W0rD'
 # pgsql synapse-db synapse synapse

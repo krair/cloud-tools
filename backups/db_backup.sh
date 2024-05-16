@@ -2,7 +2,7 @@
 
 ##########################################################################
 # Simple script to backup docker based docker_databases
-#    Currently supports MYSQL (and MariaDB), PostgreSQL, MongoDB (basic).
+#    Currently supports MariaDB, PostgreSQL, MongoDB (basic).
 #
 #    Special treatment for Nextcloud - maintenance mode
 #
@@ -16,14 +16,10 @@
 #    a list of which databases you would like backed up. Please make sure
 #    that file exists in the same directory as this script
 
-## TODO - Add support for more password context (secret, env, other)
 ## TODO - Nextcloud container name - add in configfile?
-# in config file:
-#   1) add container name to end of config file, have to be careful of accidental for other containers
-#   2) run a quick check on each container to see if it responds to php occ command?
 ## TODO - Proper logging instead of echo statements
 ## TODO - Break into multiple scripts ( create, backup, delete )
-## TODO - More complex mongodb setups ( select database(s), password protection)
+## TODO - More complex mongodb setups ( select database(s), password protection )
 
 # Set container environment
 cenv=/usr/bin/podman
@@ -46,28 +42,43 @@ dbbkdir=/tmp/dbbackup
 sed -e 's/[[:space:]]*#.*// ; /^[[:space:]]*$/d' "$configfile" |
 
 # grab vars from config file
-while read -r dbtype container user database; do
+while read -r dbtype container user database password; do
+
 # Create filename (container_name-database_name-YearMonthDay-HourMinute)
 dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
+  
   # Nextcloud Maintenance mode (more flexibility needed here for container name)
   if [[ $database == "nextcloud" ]]; then
     ${cenv} exec -u www-data nextcloud php occ maintenance:mode --on
   fi
+
   ### Backup depending on database type
 
-  # MySQL & MariaDB (using docker secrets)
+  # MariaDB
   if [[ $dbtype == "mysql" ]]; then
+    # set password to correct env var if "file" or "env"
+    if [[ $password == "file" ]]; then
+      password='`cat $MARIADB_PASSWORD_FILE`'
+    elif [[ $password == "env" ]]; then
+      password='$MARIADB_PASSWORD'
+    fi
+    # set file extension
     ext=.sql.gz
-    ${cenv} exec ${container} bash -c 'mysqldump --single-transaction -u '"${user}"' -p`cat "$MARIADB_PASSWORD_FILE"` '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
+    # create the backup file
+    ${cenv} exec ${container} bash -c 'mariadb-dump --single-transaction -u '"${user}"' -p'"${password}"' '"${database}"'' | gzip > $dbbkdir/$dbbkfile$ext
 
   # PostgreSQL
   elif [[ $dbtype == "pgsql" ]]; then
+    # set file extension
     ext=.bak.gz
+    # create the backup file
     ${cenv} exec ${container} bash -c 'pg_dump '"$database"' -U '"$user"'' | gzip > $dbbkdir/$dbbkfile$ext
 
   # MongoDB
   elif [[ $dbtype == "mongo" ]]; then
+    # set file extension
     ext=.mdb.gz
+    # create the backup file
     ${cenv} exec ${container} bash -c 'umask 077; mongodump; tar -czf '"$dbbkfile$ext"' /dump'
     ${cenv} cp ${container}:/${dbbkfile}${ext} ${dbbkdir}
     ${cenv} exec ${container} bash -c 'rm '"$dbbkfile$ext"''
@@ -83,6 +94,8 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
     echo "*******$container-$database backup is good***********"
   else
     echo "========ERROR WITH $container-$database========"
+    ## Send ntfy notification for bad db backups
+    # curl -H tags:warning -H prio:high -d "Restic DB ${container}-${database} backup failed" ntfy.sh/backups
   fi
 
   # Nextcloud maintenance mode off
