@@ -105,11 +105,11 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
 done
 
 # Perform restic backup via script
-(exec $home/restic_backup.sh)
+/bin/bash $home/restic_backup.sh
 # OR use the following to get ntfy notifications (change the ntfy.sh link to your preference)
-#(exec $home/restic_backup.sh \
+#/bin/bash $home/restic_backup.sh \
 #  && curl -H prio:low -d "Restic backup succeeded" ntfy.sh/backups \
-#  || curl -H tags:warning -H prio:high -d "Restic backup failed" ntfy.sh/backups)
+#  || curl -H tags:warning -H prio:high -d "Restic backup failed" ntfy.sh/backups
 echo "============backup complete============"
 
 # Delete database dump for security

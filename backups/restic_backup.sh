@@ -35,4 +35,4 @@ $home/bin/restic forget -d 7 -w 4 -m 12 -y 10 --prune
 # Double check data integrity (2.5% to reduce data transfer)
 $home/bin/restic check --read-data-subset=2.5%
 
-exit
+exit 0
