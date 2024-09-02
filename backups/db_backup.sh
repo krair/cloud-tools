@@ -16,12 +16,7 @@
 #    a list of which databases you would like backed up. Please make sure
 #    that file exists in the same directory as this script
 
-## TODO - Nextcloud container name - add in configfile?
-## TODO - Proper logging instead of echo statements
-## TODO - Break into multiple scripts ( create, backup, delete )
-## TODO - More complex mongodb setups ( select database(s), password protection )
-
-# Set container environment
+# Set container environment (ex docker or podman)
 cenv=/usr/bin/podman
 
 # Set home directory - see restic user setup per the restic link above
@@ -55,7 +50,7 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
   ### Backup depending on database type
 
   # MariaDB
-  if [[ $dbtype == "mysql" ]]; then
+  if [[ $dbtype == "mariadb" ]]; then
     # set password to correct env var if "file" or "env"
     if [[ $password == "file" ]]; then
       password='`cat $MARIADB_PASSWORD_FILE`'
@@ -86,7 +81,7 @@ dbbkfile=$container-$database-`date +%Y%m%d-%H%M`
 
   # catch errors and wrong types
   else
-    echo "Sorry, I don't know how to backup $dbtype. Did you mean 'mysql', 'pgsql', or 'mongo'?"
+    echo "Sorry, I don't know how to backup $dbtype. Did you mean 'mariadb', 'pgsql', or 'mongo'?"
   fi
 
   # Check backup success (file exists and is non-zero)
