@@ -19,11 +19,12 @@
 # Set container environment (ex docker or podman)
 cenv=/usr/bin/podman
 
-# Set home directory - see restic user setup per the restic link above
-home=/home/restic
+# Set repo directory - this is not for the restic repository, simply where to
+#    find the config file. (default: /home/restic)
+repo_dir=${REPO_DIR:-/home/restic}
 
 # Select config file
-configfile=$home/docker_databases
+configfile=$repo_dir/docker_databases
 [ $# -gt 0 ] && [ -r "$1" ] && configfile="$1"
 
 # For added security, reduce permissions
