@@ -123,7 +123,7 @@ If you are using multi-repos, you'll need to set the `REPO_DIR` variable as well
 
 ```
 0 2 * * * REPO_DIR=/home/user/restic/databases /home/user/restic/db_backup.sh 2>&1 | /usr/bin/logger -t resticdbbkup
-0 3 * * 0 REPO_DIR=/home/user/restic/personal /home/user/restic/db_backup.sh 2>&1 | /usr/bin/logger -t resticperbkup
+0 3 * * 0 REPO_DIR=/home/user/restic/personal /home/user/restic/restic_backup.sh 2>&1 | /usr/bin/logger -t resticperbkup
 ```
 
-The above would run a daily backup of your "databases" repo at 2AM, and a weekly backup of your "personal" repo every Sunday at 3AM.
+The above would run a daily backup of your "databases" repo at 2AM, and a weekly backup of your "personal" repo (without databases) every Sunday at 3AM.
