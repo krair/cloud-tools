@@ -1,8 +1,8 @@
 # ***Restic Backups***
 
-The files here are used in conjunction to create an off-site s3 backup.
+The files here are used in conjunction to create an off-site s3 backup. This can of course be modified to be more flexible for other backup backends (like rclone for example.)
 
-These scripts are effectively what I use on a daily basis to create incremental backups via a cron job.
+These scripts are what I use on a daily basis to create incremental backups via a `cron` job.
 
 I wrote an article on https://rair.dev on incremental backups for Nextcloud running both on a bare-metal host as well as for a containerized installation.
 
@@ -12,18 +12,18 @@ https://restic.readthedocs.io/en/stable/080_examples.html#backing-up-your-system
 ## restic_backup.sh
 
 This is the main backup script. Nothing fancy here. Requires:
-- A **restic.env** file with the required access keys, passwords, and URL (restic binary location is optional)
+- A **restic.env** file with the required access keys, passwords, and URL
 - A **restic.files** file - these are the files and directories to be backed up
 - A **restic.exclude** file - these are the files we want to exclude during our backup
 
 ## db_backup.sh
 
-Script to automate backing up of any docker database.
+Script to automate backing up of containerized databases.
 
-The script can use docker secrets stored in "_FILE" environment variable, a plain env variable, or (not recommended) put directly into the `docker_databases` file.
+The script can use secrets stored in "_FILE" environment variable, a plain env variable, or (not recommended) put directly into the `docker_databases` file.
 
 For now the script only supports MariaDB , PostgreSQL and mongodb databases. They must be set manually in the **docker_databases** file.
-- For MariaDB, use "mysql" as the Db-type
+- For MariaDB, use "mariadb" as the Db-type
 - For PostgreSQL, use "pgsql" as the Db-type
 - For MongoDB, use "mongo"as the Db-type
 
