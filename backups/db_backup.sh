@@ -21,7 +21,7 @@ cenv=/usr/bin/podman
 
 # Set repo directory - this is not for the restic repository, simply where to
 #    find the config file. (default: /home/restic)
-repo_dir=${REPO_DIR:-/home/restic}
+repo_dir=${REPO_DIR:-$(dirname "$0")}
 
 # Select config file
 configfile=$repo_dir/docker_databases

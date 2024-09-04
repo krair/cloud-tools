@@ -10,13 +10,13 @@ set -e
 
 # Set repo directory (to allow for multiple backup repos)
 #   Ex: /home/restic/files and /home/restic/photos
-repo_dir=${REPO_DIR:-/home/restic}
+repo_dir=${REPO_DIR:-$(dirname "$0")}
 
 # Get env variables for restic written into restic.env file
 source $repo_dir/restic.env
 
 # Set restic binary location - read RESTIC_BIN env var, or use default
-restic_bin=${RESTIC_BIN:-/home/restic/bin/restic}
+restic_bin=${RESTIC_BIN:-/home/$USER/restic/bin/restic}
 
 # Create logfiles
 touch $repo_dir/restic.err

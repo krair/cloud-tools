@@ -76,7 +76,7 @@ You can call the `db_backup.sh` file directly to ensure that it works correctly.
 
 #### Single Repo
 
-If you only have a single repo, you can set it permanently by either adding at the end of your user's `~/.bashrc` file:
+If you only have a single repo, by default, the scripts will look for the companion files in the same directory as the scripts. If you have the files in another directory, you can set the directory where they reside permanently by either adding at the end of your user's `~/.bashrc` file:
 
 ```
 export REPO_DIR=/home/user/restic
@@ -84,10 +84,9 @@ export REPO_DIR=/home/user/restic
 
 Or you can hard code it into the two shell scripts from this repo. But if you pull a new version, you'll have to re-hardcode them in!
 
-For this test run, if you set the `REPO_DIR` env variable in the `restic.env` file, we can simply use `source` to grab the env variable. But this won't work for `cron` jobs (more on that later).
+For this test run, simply call the script:
 
 ```
-source restic.env
 ./db_backup.sh
 ```
 
@@ -97,7 +96,7 @@ If everything goes well, you should see messages appearing and finishing with th
 
 #### Multi-repo
 
-If you decide to backup different things to different restic repositories, we simply need to set the directory where the companion files can be found. If you've set `REPO_DIR` in one of your `restic.env` files, we can simply `source` it for this test run (see above example), OR set it for this run:
+If you decide to backup different things to different `restic` repositories, we simply need to set the directory where the companion files can be found. If you've set `REPO_DIR` in one of your `restic.env` files, we can simply `source` it for this test run, OR set it for this run:
 
 ```
 REPO_DIR=/home/user/restic/databases ./db_backup.sh
@@ -118,7 +117,7 @@ Create a `cron` job for the `user` to run the backup script daily like:
 This will run a backup at 2AM daily using the `db_backup.sh` script. It will also
 log everything to `syslog` and is easy to find as it is tagged with `resticdbbkup`
 
-**Note:**
+#### Multi-repo cron
 If you are using multi-repos, you'll need to set the `REPO_DIR` variable as well:
 
 ```
